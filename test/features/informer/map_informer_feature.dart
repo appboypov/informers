@@ -376,25 +376,30 @@ class MapInformerFeature extends UnitFeature<MapInformer<String, String>> {
                 ),
               ],
               description: 'Using a different implementation of Map keeps the implementation',
-              setUpEach: (_, systemUnderTest) =>
-                  systemUnderTest = MapInformer(SplayTreeMap((key1, key2) => key1.compareTo(key2))),
               steps: [
                 Given(
                   'the Map informer uses a (monotonically increasing) SplayTreeMap implementation',
                   (systemUnderTest, log, box, mocks, [example]) {
                     final initialMapData = example.firstValue<Map<String, String>>();
-
-                    systemUnderTest.update(initialMapData);
-                    log.success('MapInformer has starting values!');
+                    int comp(String a, String b) => a.compareTo(b);
+                    final sut = MapInformer<String, String>(
+                      SplayTreeMap<String, String>(comp),
+                      copier: (map) => SplayTreeMap<String, String>.from(map, comp),
+                    );
+                    sut.update(initialMapData);
+                    box.write(#sut, sut);
+                    expect(sut.value, isA<SplayTreeMap<String, String>>());
+                    log.success(
+                        'MapInformer initialized with SplayTreeMap preserving type and order!');
                   },
                 ),
                 When(
                   'the map informer added with a new value in between the existing values',
                   (systemUnderTest, log, box, mocks, [example]) {
-                    log.info('Updating systemUnderTest with new value..');
+                    final sut = box.read<MapInformer<String, String>>(#sut);
                     final newEntry = example.secondValue<List<String>>();
-                    systemUnderTest.add(newEntry.first, newEntry.last);
-                    log.success('New value set!');
+                    sut.add(newEntry.first, newEntry.last);
+                    log.success('New value inserted!');
                   },
                 ),
                 Then(
@@ -402,11 +407,17 @@ class MapInformerFeature extends UnitFeature<MapInformer<String, String>> {
                   (systemUnderTest, log, box, mocks, [example]) {
                     final initialMapData = example.firstValue<Map<String, String>>();
                     final newEntry = example.secondValue<List<String>>();
-                    log.info(
-                        'Checking if current value is in between the existing values.');
+                    final sut = box.read<MapInformer<String, String>>(#sut);
+                    int comp(String a, String b) => a.compareTo(b);
+                    final expectedKeys = SplayTreeMap<String, String>(comp)
+                      ..addAll(initialMapData)
+                      ..[newEntry.first] = newEntry.last;
+                    log.info('Checking if current value is in between the existing values.');
+
+                    expect(sut.value, isA<SplayTreeMap<String, String>>());
                     expect(
-                      systemUnderTest.value.keys.toList(growable: false),
-                      initialMapData.keys.toList()..add(newEntry.first),
+                      sut.value.keys.toList(growable: false),
+                      expectedKeys.keys.toList(growable: false),
                     );
                     log.success('Starting key has updated value!');
                   },
