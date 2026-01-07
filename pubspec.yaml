@@ -1,6 +1,6 @@
 name: informers
 description: A simple package that copies improves the behaviour of Flutter's ValueNotifier.
-version: 0.0.4
+version: 0.0.5
 repository: https://github.com/appboypov/informers
 homepage: https://github.com/appboypov/informers
 issue_tracker: https://github.com/appboypov/informers/issues

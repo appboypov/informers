@@ -1,3 +1,7 @@
+## 0.0.5
+
+* **🔄 Changed:** Updated GitHub repository URLs to appboypov organization.
+
 ## 0.0.4
 
 * **✨ New:** Added `data` getter/setter as an alias for `value`/`update()`.
